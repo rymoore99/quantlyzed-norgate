@@ -6,11 +6,17 @@ from dotenv import load_dotenv, find_dotenv
 from datetime import datetime
 import sentry_sdk
 from sentry_sdk import capture_exception
-import pandas as pd
-from db_util import get_local_cursor, insert_dict
+from util.db_util import get_local_cursor, insert_dict
+from util.slack_sender import SlackSender
 
 load_dotenv(find_dotenv())  # Load the .env file
 
+slack = SlackSender()
+
+sentry_sdk.init(
+    dsn=os.environ['SENTRY_DSN']
+)
+slack.post_message('Starting Zacks load')
 
 class ZacksLoader():
 
@@ -75,4 +81,5 @@ class ZacksLoader():
 
         return succ_ct
 
-ZacksLoader().do_load()
+succ_ct = ZacksLoader().do_load()
+slack.post_message(f'Loaded {succ_ct} Zacks stocks')
